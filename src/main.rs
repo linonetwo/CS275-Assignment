@@ -118,7 +118,8 @@ pub fn main() {
 
             // render the loaded model
             let mut model = Matrix4::<f32>::from_translation(vec3(0.0, -1.75, 0.0)); // translate it down so it's at the center of the scene
-            model = model * Matrix4::from_scale(0.2);  // it's a bit too big for our scene, so scale it down
+            model = model * Matrix4::from_scale(0.1);  // it's a bit too big for our scene, so scale it down
+            model = model * Matrix4::<f32>::from_angle_x(Deg(-90.0)); // It is facing down, we rotate it to face us
             ourShader.setMat4(c_str!("model"), &model);
             ourModel.Draw(&ourShader);
         }
