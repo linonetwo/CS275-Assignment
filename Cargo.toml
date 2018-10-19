@@ -1,7 +1,8 @@
 [package]
-name = "tryaa"
+name = "CS275-Assignment"
 version = "0.1.0"
 authors = []
 
 [dependencies]
-amethyst = "0.8.0"
+amethyst = { git = "https://github.com/amethyst/amethyst" }
+log = "0.4.5"
