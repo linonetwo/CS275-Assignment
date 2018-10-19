@@ -3,55 +3,38 @@ Prefab (
     entities: [
         (
             data: (
-                light: (ambient_color: ((0.01, 0.01, 0.01, 1.0))),
-            ),
-        ),
-        (
-            data: (
                 graphics: (
-                    mesh: Asset(File("mesh/Pasha_guard_head/Pasha_guard_head.obj", ObjFormat, ())),
+                    mesh: Asset(File("mesh/planet/planet.obj", ObjFormat, ())),
                     material: (
-                        albedo: Data(Rgba((1.0, 0.0, 0.0, 1.0,), (channel: Srgb,
-                            sampler: (filter: Anisotropic(8), wrap_mode: (Clamp, Clamp, Clamp)),))),
+                        albedo: File("mesh/planet/planet_Quom1200.png", Png, (channel: Srgb),),
                     ),
                 ),
                 transform: (
-                    translation: (
-                        x: 5.0,
-                        y: 5.0,
-                        z: 0.0,
-                    ),
-                    rotation: (s: 0.5, v: (x: 0.5, y: -0.5, z: -0.5),),
+                    rotation: (s: 0.0, v: (x: 0.0, y: 1.0, z: 0.0),),
                 ),
             ),
         ),
         (
             data: (
                 transform: (
-                    translation: (x: 1.0, y: 1.0, z: 0.0),
+                    translation: (x: 2.0, y: 2.0, z: -2.0),
+                    rotation: (s: 0.0, v: (x: 0.0, y: 1.0, z: 0.0),),
                 ),
                 light: (
+                    ambient_color: (Rgba(0.01, 0.01, 0.01, 1.0)),
                     light: Point((
-                        intensity: 50.0,
+                        intensity: 3.0,
+                        color: (1.0, 1.0, 1.0, 1.0),
+                        radius: 5.0,
                     )),
                 ),
             ),
         ),
         (
             data: (
-                light: (
-                    light: Directional((
-                        direction: (-1.0, -1.0, -1.0),
-                        color: (0.2, 0.2, 0.2, 0.2,),
-                    )),
-                ),
-            ),
-        ),
-        (
-            data: (
-                transform: Transform (
-                    translation: (x: 0.0, y: -20.0, z: 10.0),
-                    rotation: (s: 0.7933533, v: (x: 0.6087614, y: 0.0, z: 0.0),),
+                transform: (
+                    translation: (x: 0.0, y: 0.0, z: -10.0),
+                    rotation: (s: 0.0, v: (x: 0.0, y: 1.0, z: 0.0),),
                 ),
                 camera: Perspective((
                     fovy: Rad (1.0471975512),

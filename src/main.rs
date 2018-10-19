@@ -42,11 +42,11 @@ impl<'a, 'b> State<GameData<'a, 'b>> for Example {
 fn main() -> Result<(), amethyst::Error> {
     amethyst::start_logger(Default::default());
 
-    let path = format!(
+    let config_path = format!(
         "{}/resources/display_config.ron",
         env!("CARGO_MANIFEST_DIR")
     );
-    let config = DisplayConfig::load(&path);
+    let config = DisplayConfig::load(&config_path);
     let resources = format!("{}/resources/", env!("CARGO_MANIFEST_DIR"));
 
     let pipe = Pipeline::build().with_stage(
@@ -57,8 +57,9 @@ fn main() -> Result<(), amethyst::Error> {
 
     let game_data = GameDataBuilder::default()
         .with(PrefabLoaderSystem::<MyPrefabData>::default(), "", &[])
+        .with_bundle(TransformBundle::new())?
         .with_bundle(RenderBundle::new(pipe, Some(config)))?;
-    let mut game = Application::build(resources, Example)?.build(game_data)?;
+    let mut game = Application::new(resources, Example, game_data)?;
     game.run();
     Ok(())
 }
