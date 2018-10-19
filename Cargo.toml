@@ -1,13 +1,7 @@
 [package]
-name = "CS275-Assignment"
+name = "tryaa"
 version = "0.1.0"
-authors = ["linonetwo <linonetwo012@gmail.com>"]
+authors = []
 
 [dependencies]
-cgmath = "0.16.1"
-gl = "0.10.0"
-glfw = "0.23.0"
-image = "0.19.0"
-tobj = "0.1.6"
-num = "0.2.0"
-rand = "0.5.5"
+amethyst = "0.8.0"

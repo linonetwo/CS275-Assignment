@@ -1,133 +1,64 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_snake_case)]
-extern crate glfw;
-use self::glfw::Context;
+extern crate amethyst;
 
-extern crate gl;
-extern crate cgmath;
-extern crate image;
-extern crate tobj;
+use amethyst::{
+    assets::{PrefabLoader, PrefabLoaderSystem, RonFormat},
+    core::transform::TransformBundle,
+    input::{is_close_requested, is_key_down},
+    prelude::*,
+    renderer::{
+        DisplayConfig, DrawFlat, Event, Pipeline, PosNormTex, RenderBundle, Stage, VirtualKeyCode,
+    },
+    utils::scene::BasicScenePrefab,
+};
 
-use std::ffi::CStr;
+type MyPrefabData = BasicScenePrefab<Vec<PosNormTex>>;
 
-mod macros;
-mod graphic;
+struct Example;
 
-use graphic::common::{process_events, processInput};
-use graphic::shader::Shader;
-use graphic::camera::Camera;
-use graphic::model::Model;
-
-use cgmath::{Matrix4, vec3, Point3, Deg, perspective};
-
-// settings
-const SCR_WIDTH: u32 = 800;
-const SCR_HEIGHT: u32 = 600;
-
-pub fn main() {
-    let mut camera = Camera {
-        Position: Point3::new(0.0, 0.0, 50.0),
-        ..Camera::default()
-    };
-
-    let mut firstMouse = true;
-    let mut lastX: f32 = SCR_WIDTH as f32 / 2.0;
-    let mut lastY: f32 = SCR_HEIGHT as f32 / 2.0;
-
-    // timing
-    let mut deltaTime: f32; // time between current frame and last frame
-    let mut lastFrame: f32 = 0.0;
-
-    // glfw: initialize and configure
-    // ------------------------------
-    let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
-    glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
-    glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
-    #[cfg(target_os = "macos")]
-    glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
-
-    // glfw window creation
-    // --------------------
-    let (mut window, events) = glfw.create_window(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", glfw::WindowMode::Windowed)
-        .expect("Failed to create GLFW window");
-
-    window.make_current();
-    window.set_framebuffer_size_polling(true);
-    window.set_cursor_pos_polling(true);
-    window.set_scroll_polling(true);
-
-    // tell GLFW to capture our mouse
-    window.set_cursor_mode(glfw::CursorMode::Disabled);
-
-    // gl: load all OpenGL function pointers
-    // ---------------------------------------
-    gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
-
-    let (ourShader, ourModel) = unsafe {
-        // configure global opengl state
-        // -----------------------------
-        gl::Enable(gl::DEPTH_TEST);
-
-        // build and compile shaders
-        // -------------------------
-        let ourShader = Shader::new(
-            "src/graphic/shaders/model_loading.vs",
-            "src/graphic/shaders/model_loading.fs");
-
-        // load models
-        // -----------
-        let ourModel = Model::new("src/resources/objects/Pasha_guard_head/Pasha_guard_head.obj");
-
-        // draw in wireframe
-        // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-
-        (ourShader, ourModel)
-    };
-
-    // render loop
-    // -----------
-    while !window.should_close() {
-        // per-frame time logic
-        // --------------------
-        let currentFrame = glfw.get_time() as f32;
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        // events
-        // -----
-        process_events(&events, &mut firstMouse, &mut lastX, &mut lastY, &mut camera);
-
-        // input
-        // -----
-        processInput(&mut window, deltaTime, &mut camera);
-
-        // render
-        // ------
-        unsafe {
-            gl::ClearColor(0.1, 0.1, 0.1, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-
-            // don't forget to enable shader before setting uniforms
-            ourShader.useProgram();
-
-            // view/projection transformations
-            let projection: Matrix4<f32> = perspective(Deg(camera.Zoom), SCR_WIDTH as f32 / SCR_HEIGHT as f32, 0.1, 100.0);
-            let view = camera.GetViewMatrix();
-            ourShader.setMat4(c_str!("projection"), &projection);
-            ourShader.setMat4(c_str!("view"), &view);
-
-            // render the loaded model
-            let mut model = Matrix4::<f32>::from_translation(vec3(0.0, -1.75, 0.0)); // translate it down so it's at the center of the scene
-            model = model * Matrix4::from_scale(0.1);  // it's a bit too big for our scene, so scale it down
-            model = model * Matrix4::<f32>::from_angle_x(Deg(-90.0)); // It is facing down, we rotate it to face us
-            ourShader.setMat4(c_str!("model"), &model);
-            ourModel.Draw(&ourShader);
-        }
-
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        window.swap_buffers();
-        glfw.poll_events();
+impl<'a, 'b> State<GameData<'a, 'b>> for Example {
+    fn on_start(&mut self, data: StateData<GameData>) {
+        // Initialise the scene with an object, a light and a camera.
+        let prefab_path = format!("{}/resources/prefab/head.ron", env!("CARGO_MANIFEST_DIR"));
+        let handle = data.world.exec(|loader: PrefabLoader<MyPrefabData>| {
+            loader.load(prefab_path, RonFormat, (), ())
+        });
+        data.world.create_entity().with(handle).build();
     }
 
+    fn handle_event(&mut self, _: StateData<GameData>, event: Event) -> Trans<GameData<'a, 'b>> {
+        if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
+            Trans::Quit
+        } else {
+            Trans::None
+        }
+    }
+
+    fn update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>> {
+        data.data.update(&data.world);
+        Trans::None
+    }
+}
+
+fn main() -> Result<(), amethyst::Error> {
+    amethyst::start_logger(Default::default());
+
+    let path = format!(
+        "{}/resources/display_config.ron",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let config = DisplayConfig::load(&path);
+    let resources = format!("{}/resources/", env!("CARGO_MANIFEST_DIR"));
+
+    let pipe = Pipeline::build().with_stage(
+        Stage::with_backbuffer()
+            .clear_target([0.00196, 0.23726, 0.21765, 1.0], 1.0)
+            .with_pass(DrawFlat::<PosNormTex>::new()),
+    );
+
+    let game_data = GameDataBuilder::default()
+        .with(PrefabLoaderSystem::<MyPrefabData>::default(), "", &[])
+        .with_bundle(RenderBundle::new(pipe, Some(config)))?;
+    let mut game = Application::build(resources, Example)?.build(game_data)?;
+    game.run();
+    Ok(())
 }
