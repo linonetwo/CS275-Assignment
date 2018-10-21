@@ -11,9 +11,9 @@ use amethyst::{
     },
     assets::{PrefabLoader, PrefabLoaderSystem, Processor, RonFormat},
     audio::{output::init_output, Source},
-    core::{Transform, TransformBundle, Time},
+    core::{Time, Transform, TransformBundle},
     ecs::prelude::{Entity, System, Write},
-    input::{is_close_requested, is_key_down, InputBundle},
+    input::{get_key, is_close_requested, is_key_down, InputBundle},
     prelude::*,
     renderer::{DrawShaded, ElementState, PosNormTex, VirtualKeyCode},
     shrev::{EventChannel, ReaderId},
@@ -35,7 +35,6 @@ type MyPrefabData = (
     BasicScenePrefab<Vec<PosNormTex>>,
     Option<AnimationSetPrefab<AnimationId, Transform>>,
 );
-
 
 struct EnterScene {
     fps_display: Option<Entity>,
@@ -71,14 +70,110 @@ impl<'a, 'b> SimpleState<'a, 'b> for EnterScene {
         });
     }
 
-    fn handle_event(&mut self, _: StateData<GameData>, event: StateEvent) -> SimpleTrans<'a, 'b> {
+    fn handle_event(&mut self, state_data: StateData<GameData>, event: StateEvent) -> SimpleTrans<'a, 'b> {
         match &event {
             StateEvent::Window(event) => {
                 if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
-                    Trans::Quit
-                } else {
-                    Trans::None
+                    return Trans::Quit
                 }
+                let StateData { world, .. } = state_data;
+                match get_key(&event) {
+                    Some((VirtualKeyCode::Space, ElementState::Pressed)) => {
+                        add_animation(
+                            world,
+                            self.head.unwrap(),
+                            self.current_animation,
+                            self.rate,
+                            None,
+                            true,
+                        );
+                    }
+
+                    Some((VirtualKeyCode::D, ElementState::Pressed)) => {
+                        add_animation(
+                            world,
+                            self.head.unwrap(),
+                            AnimationId::Translate,
+                            self.rate,
+                            None,
+                            false,
+                        );
+                        add_animation(
+                            world,
+                            self.head.unwrap(),
+                            AnimationId::Rotate,
+                            self.rate,
+                            Some((AnimationId::Translate, DeferStartRelation::End)),
+                            false,
+                        );
+                        add_animation(
+                            world,
+                            self.head.unwrap(),
+                            AnimationId::Scale,
+                            self.rate,
+                            Some((AnimationId::Rotate, DeferStartRelation::Start(0.666))),
+                            false,
+                        );
+                    }
+
+                    Some((VirtualKeyCode::Left, ElementState::Pressed)) => {
+                        get_animation_set::<AnimationId, Transform>(
+                            &mut world.write_storage(),
+                            self.head.unwrap().clone(),
+                        ).unwrap()
+                        .step(self.current_animation, StepDirection::Backward);
+                    }
+
+                    Some((VirtualKeyCode::Right, ElementState::Pressed)) => {
+                        get_animation_set::<AnimationId, Transform>(
+                            &mut world.write_storage(),
+                            self.head.unwrap().clone(),
+                        ).unwrap()
+                        .step(self.current_animation, StepDirection::Forward);
+                    }
+
+                    Some((VirtualKeyCode::F, ElementState::Pressed)) => {
+                        self.rate = 1.0;
+                        get_animation_set::<AnimationId, Transform>(
+                            &mut world.write_storage(),
+                            self.head.unwrap().clone(),
+                        ).unwrap()
+                        .set_rate(self.current_animation, self.rate);
+                    }
+
+                    Some((VirtualKeyCode::V, ElementState::Pressed)) => {
+                        self.rate = 0.0;
+                        get_animation_set::<AnimationId, Transform>(
+                            &mut world.write_storage(),
+                            self.head.unwrap().clone(),
+                        ).unwrap()
+                        .set_rate(self.current_animation, self.rate);
+                    }
+
+                    Some((VirtualKeyCode::H, ElementState::Pressed)) => {
+                        self.rate = 0.5;
+                        get_animation_set::<AnimationId, Transform>(
+                            &mut world.write_storage(),
+                            self.head.unwrap().clone(),
+                        ).unwrap()
+                        .set_rate(self.current_animation, self.rate);
+                    }
+
+                    Some((VirtualKeyCode::R, ElementState::Pressed)) => {
+                        self.current_animation = AnimationId::Rotate;
+                    }
+
+                    Some((VirtualKeyCode::S, ElementState::Pressed)) => {
+                        self.current_animation = AnimationId::Scale;
+                    }
+
+                    Some((VirtualKeyCode::T, ElementState::Pressed)) => {
+                        self.current_animation = AnimationId::Translate;
+                    }
+
+                    _ => {}
+                };
+                Trans::None
             }
             StateEvent::Ui(ui_event) => {
                 info!(
@@ -126,8 +221,7 @@ fn main() -> Result<(), amethyst::Error> {
         .with_bundle(AnimationBundle::<AnimationId, Transform>::new(
             "animation_control_system",
             "sampler_interpolation_system",
-        ))?
-        .with_bundle(TransformBundle::new().with_dep(&["sampler_interpolation_system"]))?
+        ))?.with_bundle(TransformBundle::new().with_dep(&["sampler_interpolation_system"]))?
         .with(Processor::<Source>::new(), "source_processor", &[])
         .with(UiEventHandlerSystem::new(), "ui_event_handler", &[])
         .with_bundle(FPSCounterBundle::default())?
@@ -163,7 +257,6 @@ impl<'a> System<'a> for UiEventHandlerSystem {
         }
     }
 }
-
 
 fn add_animation(
     world: &mut World,
