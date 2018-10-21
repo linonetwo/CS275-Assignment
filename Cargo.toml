@@ -1,8 +1,9 @@
 [package]
-name = "CS275-Assignment"
+name = "cs275_assignment"
 version = "0.1.0"
 authors = []
 
 [dependencies]
 amethyst = { git = "https://github.com/amethyst/amethyst" }
 log = "0.4.5"
+serde = "1.0.80"

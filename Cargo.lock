@@ -1,12 +1,4 @@
 [[package]]
-name = "CS275-Assignment"
-version = "0.1.0"
-dependencies = [
- "amethyst 0.8.0 (git+https://github.com/amethyst/amethyst)",
- "log 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "adler32"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -783,6 +775,15 @@ dependencies = [
 name = "crossbeam-utils"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "cs275_assignment"
+version = "0.1.0"
+dependencies = [
+ "amethyst 0.8.0 (git+https://github.com/amethyst/amethyst)",
+ "log 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "deflate"

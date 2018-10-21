@@ -1,17 +1,21 @@
 extern crate amethyst;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate serde;
 
 use amethyst::{
-    assets::{PrefabLoader, PrefabLoaderSystem, RonFormat, Processor},
+    animation::{
+        get_animation_set, AnimationBundle, AnimationCommand, AnimationSet, AnimationSetPrefab,
+        DeferStartRelation, EndControl, StepDirection,
+    },
+    assets::{PrefabLoader, PrefabLoaderSystem, Processor, RonFormat},
     audio::{output::init_output, Source},
-    core::{transform::TransformBundle, Time},
+    core::{Transform, TransformBundle, Time},
     ecs::prelude::{Entity, System, Write},
     input::{is_close_requested, is_key_down, InputBundle},
     prelude::*,
-    renderer::{
-        DrawShaded, PosNormTex, VirtualKeyCode,
-    },
+    renderer::{DrawShaded, ElementState, PosNormTex, VirtualKeyCode},
     shrev::{EventChannel, ReaderId},
     ui::{UiBundle, UiCreator, UiEvent, UiFinder, UiText},
     utils::{
@@ -20,10 +24,35 @@ use amethyst::{
     },
 };
 
-type MyPrefabData = BasicScenePrefab<Vec<PosNormTex>>;
+#[derive(Eq, PartialOrd, PartialEq, Hash, Debug, Copy, Clone, Deserialize, Serialize)]
+enum AnimationId {
+    Scale,
+    Rotate,
+    Translate,
+}
+
+type MyPrefabData = (
+    BasicScenePrefab<Vec<PosNormTex>>,
+    Option<AnimationSetPrefab<AnimationId, Transform>>,
+);
+
 
 struct EnterScene {
     fps_display: Option<Entity>,
+    head: Option<Entity>,
+    rate: f32,
+    current_animation: AnimationId,
+}
+
+impl Default for EnterScene {
+    fn default() -> Self {
+        EnterScene {
+            head: None,
+            fps_display: None,
+            rate: 1.0,
+            current_animation: AnimationId::Translate,
+        }
+    }
 }
 
 impl<'a, 'b> SimpleState<'a, 'b> for EnterScene {
@@ -31,9 +60,9 @@ impl<'a, 'b> SimpleState<'a, 'b> for EnterScene {
         let StateData { world, .. } = state_data;
         // Initialise the scene with an object, a light and a camera.
         let prefab_path = format!("{}/resources/prefab/head.ron", env!("CARGO_MANIFEST_DIR"));
-        let handle = world
+        let head_prefab_handle = world
             .exec(|loader: PrefabLoader<MyPrefabData>| loader.load(prefab_path, RonFormat, (), ()));
-        world.create_entity().with(handle).build();
+        self.head = Some(world.create_entity().with(head_prefab_handle).build());
 
         init_output(&mut world.res);
         let ui_path = format!("{}/resources/ui/example.ron", env!("CARGO_MANIFEST_DIR"));
@@ -94,14 +123,18 @@ fn main() -> Result<(), amethyst::Error> {
 
     let game_data = GameDataBuilder::default()
         .with(PrefabLoaderSystem::<MyPrefabData>::default(), "", &[])
-        .with_bundle(TransformBundle::new())?
+        .with_bundle(AnimationBundle::<AnimationId, Transform>::new(
+            "animation_control_system",
+            "sampler_interpolation_system",
+        ))?
+        .with_bundle(TransformBundle::new().with_dep(&["sampler_interpolation_system"]))?
         .with(Processor::<Source>::new(), "source_processor", &[])
         .with(UiEventHandlerSystem::new(), "ui_event_handler", &[])
         .with_bundle(FPSCounterBundle::default())?
         .with_bundle(InputBundle::<String, String>::new())?
         .with_bundle(UiBundle::<String, String>::new())?
         .with_basic_renderer(display_config_path, DrawShaded::<PosNormTex>::new(), true)?;
-    let mut game = Application::new(resources, EnterScene { fps_display: None }, game_data)?;
+    let mut game = Application::new(resources, EnterScene::default(), game_data)?;
     game.run();
     Ok(())
 }
@@ -127,6 +160,52 @@ impl<'a> System<'a> for UiEventHandlerSystem {
         // Reader id was just initialized above if empty
         for ev in events.read(self.reader_id.as_mut().unwrap()) {
             info!("[SYSTEM] You just interacted with a ui element: {:?}", ev);
+        }
+    }
+}
+
+
+fn add_animation(
+    world: &mut World,
+    entity: Entity,
+    id: AnimationId,
+    rate: f32,
+    defer: Option<(AnimationId, DeferStartRelation)>,
+    toggle_if_exists: bool,
+) {
+    let animation = world
+        .read_storage::<AnimationSet<AnimationId, Transform>>()
+        .get(entity)
+        .and_then(|s| s.get(&id))
+        .cloned()
+        .unwrap();
+    let mut sets = world.write_storage();
+    let control_set = get_animation_set::<AnimationId, Transform>(&mut sets, entity).unwrap();
+    match defer {
+        None => {
+            if toggle_if_exists && control_set.has_animation(id) {
+                control_set.toggle(id);
+            } else {
+                control_set.add_animation(
+                    id,
+                    &animation,
+                    EndControl::Normal,
+                    rate,
+                    AnimationCommand::Start,
+                );
+            }
+        }
+
+        Some((defer_id, defer_relation)) => {
+            control_set.add_deferred_animation(
+                id,
+                &animation,
+                EndControl::Normal,
+                rate,
+                AnimationCommand::Start,
+                defer_id,
+                defer_relation,
+            );
         }
     }
 }
