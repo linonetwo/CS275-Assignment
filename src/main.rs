@@ -64,17 +64,24 @@ impl<'a, 'b> SimpleState<'a, 'b> for EnterScene {
         self.head = Some(world.create_entity().with(head_prefab_handle).build());
 
         init_output(&mut world.res);
-        let keyframe_control_path = format!("{}/resources/ui/keyframe_control.ron", env!("CARGO_MANIFEST_DIR"));
+        let keyframe_control_path = format!(
+            "{}/resources/ui/keyframe_control.ron",
+            env!("CARGO_MANIFEST_DIR")
+        );
         world.exec(|mut creator: UiCreator| {
             creator.create(keyframe_control_path, ());
         });
     }
 
-    fn handle_event(&mut self, state_data: StateData<GameData>, event: StateEvent) -> SimpleTrans<'a, 'b> {
+    fn handle_event(
+        &mut self,
+        state_data: StateData<GameData>,
+        event: StateEvent,
+    ) -> SimpleTrans<'a, 'b> {
         match &event {
             StateEvent::Window(event) => {
                 if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
-                    return Trans::Quit
+                    return Trans::Quit;
                 }
                 let StateData { world, .. } = state_data;
                 match get_key(&event) {
@@ -222,11 +229,11 @@ fn main() -> Result<(), amethyst::Error> {
             "animation_control_system",
             "sampler_interpolation_system",
         ))?.with_bundle(TransformBundle::new().with_dep(&["sampler_interpolation_system"]))?
-        .with(Processor::<Source>::new(), "source_processor", &[])
-        .with(UiEventHandlerSystem::new(), "ui_event_handler", &[])
         .with_bundle(FPSCounterBundle::default())?
         .with_bundle(InputBundle::<String, String>::new())?
         .with_bundle(UiBundle::<String, String>::new())?
+        .with(Processor::<Source>::new(), "source_processor", &[])
+        .with(UiEventHandlerSystem::new(), "ui_event_handler", &[])
         .with_basic_renderer(display_config_path, DrawShaded::<PosNormTex>::new(), true)?;
     let mut game = Application::new(resources, EnterScene::default(), game_data)?;
     game.run();
