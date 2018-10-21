@@ -1,0 +1,89 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        id: "background",
+        anchor: Middle,
+        stretch: XY( x_margin: 0., y_margin: 0.),
+        width: 20.,
+        height: 20.,
+    ),
+    background: (
+        image: Data(Rgba((0.0, 0.0, 0.0, 0.0), (channel: Srgb))),
+    ),
+    children: [
+        Container(
+            transform: (
+                id: "keyframe_control_container",
+                x: 0.,
+                y: -150.,
+                width: 500.,
+                height: 120.,
+                anchor: Middle,
+            ),
+            background: (
+                image: Data(Rgba((0.3, 0.3, 0.3, 0.7), (channel: Srgb))),
+            ),
+            children: [
+                Button(
+                    transform: (
+                        id: "add_keyframe_button",
+                        width: 400.,
+                        height: 32.,
+                        y: 32.,
+                        tab_order: 9,
+                        anchor: Middle,
+                        mouse_reactive: true,
+                    ),
+                    button: (
+                        text: "Add Key Frame",
+                        font: File("font/square.ttf", Ttf, ()),
+                        font_size: 20.,
+                        normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                        normal_image: Data(Rgba((0.82, 0.83, 0.83, 1.0), (channel: Srgb))),
+                    )
+                ),
+
+                Button(
+                    transform: (
+                        id: "play_button",
+                        y: -36.,
+                        width: 400.,
+                        height: 32.,
+                        tab_order: 9,
+                        anchor: Middle,
+                        mouse_reactive: true,
+                    ),
+                    button: (
+                        text: "Play",
+                        font: File("font/square.ttf", Ttf, ()),
+                        font_size: 20.,
+                        normal_text_color: (0.2, 0.2, 1.0, 1.0),
+                        normal_image: Data(Rgba((0., 1., 0., 1.), (channel: Srgb))),
+                        hover_image: Data(Rgba((0.3, 1., 0.3, 1.), (channel: Srgb))),
+                        press_image: Data(Rgba((0.15, 1., 0.15, 1.), (channel: Srgb))),
+                        hover_sound: File("audio/boop.ogg", Ogg, ()),
+                        press_sound: File("audio/confirm.ogg", Ogg, ()),
+                    )
+                )
+            ]
+        ),
+        Text(
+            transform: (
+                id: "fps",
+                x: 50.,
+                y: -10,
+                width: 200.,
+                height: 30.,
+                tab_order: 2,
+                anchor: TopLeft,
+                transparent: true,
+            ),
+            text: (
+                text: "N/A",
+                font: File("font/square.ttf", Ttf, ()),
+                font_size: 20.,
+                color: (1.0, 1.0, 1.0, .5),
+            )
+        ),
+    ],
+)

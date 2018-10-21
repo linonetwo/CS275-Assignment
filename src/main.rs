@@ -64,9 +64,9 @@ impl<'a, 'b> SimpleState<'a, 'b> for EnterScene {
         self.head = Some(world.create_entity().with(head_prefab_handle).build());
 
         init_output(&mut world.res);
-        let ui_path = format!("{}/resources/ui/example.ron", env!("CARGO_MANIFEST_DIR"));
+        let keyframe_control_path = format!("{}/resources/ui/keyframe_control.ron", env!("CARGO_MANIFEST_DIR"));
         world.exec(|mut creator: UiCreator| {
-            creator.create(ui_path, ());
+            creator.create(keyframe_control_path, ());
         });
     }
 
