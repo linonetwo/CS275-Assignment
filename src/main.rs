@@ -226,9 +226,9 @@ fn main() -> Result<(), amethyst::Error> {
     let game_data = GameDataBuilder::default()
         .with(PrefabLoaderSystem::<MyPrefabData>::default(), "", &[])
         .with_bundle(AnimationBundle::<AnimationId, Transform>::new(
-            "animation_control_system",
-            "sampler_interpolation_system",
-        ))?.with_bundle(TransformBundle::new().with_dep(&["sampler_interpolation_system"]))?
+            "head_animation_control_system",
+            "head_sampler_interpolation_system",
+        ))?.with_bundle(TransformBundle::new().with_dep(&["head_sampler_interpolation_system"]))?
         .with_bundle(FPSCounterBundle::default())?
         .with_bundle(InputBundle::<String, String>::new())?
         .with_bundle(UiBundle::<String, String>::new())?
