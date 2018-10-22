@@ -49,7 +49,7 @@ impl Default for EnterScene {
             head: None,
             fps_display: None,
             rate: 1.0,
-            current_animation: AnimationId::Translate,
+            current_animation: AnimationId::Rotate,
         }
     }
 }
@@ -137,45 +137,6 @@ impl<'a, 'b> SimpleState<'a, 'b> for EnterScene {
                             self.head.unwrap().clone(),
                         ).unwrap()
                         .step(self.current_animation, StepDirection::Forward);
-                    }
-
-                    Some((VirtualKeyCode::F, ElementState::Pressed)) => {
-                        self.rate = 1.0;
-                        get_animation_set::<AnimationId, Transform>(
-                            &mut world.write_storage(),
-                            self.head.unwrap().clone(),
-                        ).unwrap()
-                        .set_rate(self.current_animation, self.rate);
-                    }
-
-                    Some((VirtualKeyCode::V, ElementState::Pressed)) => {
-                        self.rate = 0.0;
-                        get_animation_set::<AnimationId, Transform>(
-                            &mut world.write_storage(),
-                            self.head.unwrap().clone(),
-                        ).unwrap()
-                        .set_rate(self.current_animation, self.rate);
-                    }
-
-                    Some((VirtualKeyCode::H, ElementState::Pressed)) => {
-                        self.rate = 0.5;
-                        get_animation_set::<AnimationId, Transform>(
-                            &mut world.write_storage(),
-                            self.head.unwrap().clone(),
-                        ).unwrap()
-                        .set_rate(self.current_animation, self.rate);
-                    }
-
-                    Some((VirtualKeyCode::R, ElementState::Pressed)) => {
-                        self.current_animation = AnimationId::Rotate;
-                    }
-
-                    Some((VirtualKeyCode::S, ElementState::Pressed)) => {
-                        self.current_animation = AnimationId::Scale;
-                    }
-
-                    Some((VirtualKeyCode::T, ElementState::Pressed)) => {
-                        self.current_animation = AnimationId::Translate;
                     }
 
                     _ => {}
