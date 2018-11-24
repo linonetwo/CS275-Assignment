@@ -85,6 +85,8 @@ impl<'a> System<'a> for MassSpringSystem {
 }
 ```
 
+While head shaking, it should make first node in hair move together.
+
 ## Reference
 
 1. http://www.fannieliu.com/hairsim/hairsim.html
