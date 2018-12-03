@@ -12,6 +12,7 @@ struct Mass {
   position: [f32; 3],
   mass: f32,
   force: [f32; 3],
+  velocity: [f32; 3],
   // if a head-hair collision happened, a penalty force will add to the node
   penalty: [f32; 3],
 }
@@ -44,7 +45,13 @@ Then we create hairs:
 let hair = world.create_entity().with(HairStrands { ... }).build();
 ```
 
+And resource to describe gravity, spring rest length.
+
 ### Mass-Spring System
+
+While head shaking, it should make first node in hair move together.
+
+Then we go through systems.
 
 First system is the head-hair collision system, add penalty force to mass nodes that are inside the head.
 
@@ -85,7 +92,11 @@ impl<'a> System<'a> for MassSpringSystem {
 }
 ```
 
-While head shaking, it should make first node in hair move together.
+### Draw
+
+Multiply node positions with some interval, to produce massive hairs.
+
+Then send node to line renderer.
 
 ## Reference
 

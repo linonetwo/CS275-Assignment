@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = []
 
 [dependencies]
-amethyst = { git = "https://github.com/amethyst/amethyst" }
-log = "0.4.5"
+amethyst = "0.9.0"
+log = "0.4.6"
 serde = "1.0.80"
+amethyst-editor-sync = "0.3.0"

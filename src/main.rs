@@ -1,5 +1,7 @@
 extern crate amethyst;
 #[macro_use]
+extern crate amethyst_editor_sync;
+#[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde;
@@ -12,7 +14,7 @@ use amethyst::{
     assets::{PrefabLoader, PrefabLoaderSystem, Processor, RonFormat},
     audio::{output::init_output, Source},
     core::{Time, Transform, TransformBundle},
-    ecs::prelude::{Entity, System, Write},
+    ecs::prelude::*,
     input::{get_key, is_close_requested, is_key_down, InputBundle},
     prelude::*,
     renderer::{DrawShaded, ElementState, PosNormTex, VirtualKeyCode},
@@ -121,6 +123,10 @@ impl<'a, 'b> SimpleState<'a, 'b> for EnterScene {
                             Some((AnimationId::Rotate, DeferStartRelation::Start(0.666))),
                             false,
                         );
+                    }
+
+                    Some((VirtualKeyCode::F, ElementState::Pressed)) => {
+                        print!("{:?}", self.head.unwrap().clone());
                     }
 
                     Some((VirtualKeyCode::Left, ElementState::Pressed)) => {
