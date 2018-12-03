@@ -6,6 +6,7 @@ extern crate log;
 #[macro_use]
 extern crate serde;
 
+use amethyst_editor_sync::*;
 use amethyst::{
     animation::{
         get_animation_set, AnimationBundle, AnimationCommand, AnimationSet, AnimationSetPrefab,
@@ -189,6 +190,14 @@ fn main() -> Result<(), amethyst::Error> {
         env!("CARGO_MANIFEST_DIR")
     );
     let resources = format!("{}/resources/", env!("CARGO_MANIFEST_DIR"));
+
+    // devtool setup
+    let components = type_set![];
+    let resources = type_set![];
+    let editor_bundle = SyncEditorBundle::new()
+        .sync_default_types()
+        .sync_components(&components)
+        .sync_resources(&resources);
 
     let game_data = GameDataBuilder::default()
         .with(PrefabLoaderSystem::<MyPrefabData>::default(), "", &[])
